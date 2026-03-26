@@ -33,10 +33,12 @@ def log_in(loginy):
     print("Przekroczono liczbę prób! Do widzenia.")
     return None
 
+#Przeglądanie katalogu
 def print_books():
     for ksiazka in ksiazki:
         print(f"{ksiazka['tytul']} — {ksiazka['autor']} (dostępne: {ksiazka['sztuk']})")
 
+#Wyswietlenie Menu główne
 def print_main_menu():
     print("\n----------------------------")
     print("1) Przeglądaj książki")
@@ -48,6 +50,7 @@ def main():
     if user is None:
         return
     print(f"\nWitaj w systemie biblioteki {user['login']}!")
+    #pętla Menu główne
     while True:
         print_main_menu()
         choice = input("> ").strip()
