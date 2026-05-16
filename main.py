@@ -32,7 +32,7 @@ class User:
     def authenticate(self, password):
         return self._password == password
 
-    def menu(self):
+    def menu(self, library):
         raise NotImplementedError("Klasy pochodne muszą zaimplementować menu()")
 
     def __str__(self):
@@ -46,12 +46,32 @@ class Reader(User):
         self.borrowed = []
         self.extension_requests = []
 
-    def menu(self):
-        print(f"Menu czytelnika ({self.login}):")
-        print("  1. Przeglądaj katalog")
-        print("  2. Wypożycz")
-        print("  3. Moje wypożyczenia")
-        print("  4. pPośba o przedłużenie")
+    def menu(self, library):
+       while True:
+
+            print(f"Menu czytelnika ({self.login}):")
+            print("  1. Przeglądaj katalog")
+            print("  2. Wypożycz")
+            print("  3. Moje wypożyczenia")
+            print("  4. Przedłuż wypożyczenie")
+            print("  0. Wyloguj")
+
+            choice = input("> ").strip()
+            if choice == "1":
+                library.show_books()
+            elif choice == "2":
+                library.borrow_book(self)
+            elif choice == "3":
+                library.show_user_borrowings(self)
+            elif choice == "4":
+                library.send_request(self)
+            elif choice == "0":
+                print("Wylogowano!\n")
+                return
+            else:
+                print("Nieznana opcja, spróbuj ponownie.\n")
+
+                continue
 
 
 class Librarian(User):
@@ -59,10 +79,20 @@ class Librarian(User):
     def __init__(self, login, password):
         super().__init__(login, password, "Bibliotekarz")
 
-    def menu(self):
-        print(f"Menu bibliotekarza ({self.login}):")
-        print("  1. Lista wszystkich wypożyczeń")
-        print("  2. Prośby o przedłużenie")
+    def menu(self, library):
+        while True:
+
+            print(f"Menu bibliotekarza ({self.login}):")
+            print("  1. Lista wszystkich wypożyczeń")
+            print("  2. Prośby o przedłużenie")
+            print("  0. Wyloguj")
+            choice = input("> ").strip()
+            if choice == "0": #opcja Wylogowanie
+                print("Wylogowano!\n")
+                return
+            else:
+                print("Nieznana opcja, spróbuj ponownie.\n")
+                continue
 
 class Library:
 
@@ -77,29 +107,78 @@ class Library:
     def add_user(self, user):
         self.users.append(user)
 
+    # Przeglądanie katalogu
     def show_books(self):
         print("\nKatalog książek:")
         for index, book in enumerate(self.books):
             print(f"{index + 1}. {book}")
 
-    def borrow_book(self, reader, book_index):
-        book = self.books[book_index]
+    # szukanie ksiązki po tytule
+    def find_book_by_title(self):
+        title = input("Podaj tytuł książki do wypożyczenia: ")
+        title = title.strip().lower()  # lower do ignorowania wielkości liter
+        for book in self.books:
+            if book.title.strip().lower() == title:
+                return book
+        return None
 
-        if book.available_copies > 0:
+    # Wypożyczenie ksiązki
+    def borrow_book(self, reader):
+        book = self.find_book_by_title()
+
+        if book is None:
+            print("Nie znaleziono tytułu!\n")
+            return
+
+        if book:
             book.borrow()
-            reader.borrowed_books.append(book)
-            print(f"{reader.login} wypożyczył: {book.title}")
+            reader.borrowed.append(book)
+            print(f"{reader.login} wypożyczył: {book.title} - {book.author}\n")
         else:
-            print("Książka niedostępna")
+            print("Książka niedostępna!\n")
 
+    # Wypożyczenia czytelnika
+    def show_user_borrowings(self, reader):
+        print(f"Aktualne wypozyczenia: {reader.login}")
+
+        if not reader.borrowed:
+            print("Lista jest pusta!\n")
+        for index, book in enumerate(reader.borrowed):
+            print(f"{index + 1}. {book}")
+
+    # Wszystkie wypożyczenia
     def show_borrowings(self):
         print("\nAktualne wypożyczenia:")
 
         for user in self.users:
             if isinstance(user, Reader):
                 for book in user.borrowed:
-                    print(f"{user.login} -> {book.title}")
+                    print(f"{user} -> {book.title} {book.author}")
 
+    # Wyslij przedłużenie
+    def send_request(self, reader):
+        self.show_user_borrowings(reader)
+        book_idx = int(input(" > "))
+        book_idx -=1
+        try:
+            book = reader.borrowed[book_idx]
+
+            if book is None:
+                print("Nie znaleziono wypożyczenia!\n")
+                return
+            elif book in reader.extension_requests:
+                print("Prośba została już wysłana!\n")
+            else:
+                reader.extension_requests.append(book)
+                print(f"Wysłano prośbę o przedłużenie! {book.title} {book.author}\n")
+        except IndexError:
+            print("Nieprawidłowy nr wypożyczenia!\n")
+        except ValueError as e:
+            print(e)
+        return
+
+
+    # Obsługa przedłużeń
     def handle_requests(self):
         print("\nProśby o przedłużenie:")
 
@@ -114,6 +193,8 @@ class Library:
                 print("Prośba zaakceptowana")
             else:
                 print("Prośba odrzucona")
+                book.return_copy()
+                reader.borrowed_books.remove(book)
 
         self.extension_requests.clear()
 
@@ -138,66 +219,6 @@ class Library:
         print("Przekroczono liczbę prób! Do widzenia.")
         return None
 
-
-
-
-#Przeglądanie katalogu
-def print_books(books):
-    print("\nKatalog dostepnych tytułów")
-    print("-----------------------------")
-    for book in books:
-        print(f"{book['tytul']} — {book['autor']} (dostępne: {book['sztuk']})")
-
-#szukanie ksiązki po tytule
-def find_book_by_title(books, title):
-    title = title.strip().lower()   #lower do ignorowania wielkości liter
-    for book in books:
-        if book["tytul"].strip().lower() == title:
-            return book
-    return None
-
-#Wypożyczenie książki
-def borrow_book(books, borrows, user_login):
-    title = input("Podaj tytuł książki do wypożyczenia: ")
-    book = find_book_by_title(books, title) #metoda do szukania ksiązki po tytule
-    if book is None:
-        print("Nie znaleziono książki o podanym tytule!")
-        return
-
-    if book["sztuk"] <= 0:
-        print("Tytuł nie jest obecnie dostępny do wypożyczenia!")
-        return
-
-    # zmniejszamy ilość sztuk
-    book["sztuk"] -= 1
-
-    # dodanie tytułu do wypożyczeń czytalnika
-    if user_login not in borrows:
-        borrows[user_login] = []
-    borrows[user_login].append({"tytul": book["tytul"], "autor": book["autor"]})
-    print(f"Wypożyczono: {book['tytul']} — {book['autor']}")
-
-#Moje wypożyczenia
-def print_user_borrows(borrows, user_login):
-    user_borrows = borrows.get(user_login, []) #pobranie listy posiadanych tytułów, ograniczonej do loginu czytelnika
-
-    if not user_borrows:
-        print("Brak wypożyczonych książek!")
-        return
-
-    print("Moje wypożyczenia:") #wyświetlenie listy wypożyczeń
-    for borrow in user_borrows:
-        print(f"{borrow['tytul']} — {borrow['autor']}")
-
-
-#Wyswietl Menu główne
-def print_main_menu():
-    print("\n----------------------------")
-    print("1) Przeglądaj katalog książek")
-    print("2) Wypożycz książkę")
-    print("3) Moje wypożyczenia")
-    print("0) Wyloguj")
-
 def main():
     library = Library()
 
@@ -219,24 +240,7 @@ def main():
     if user is None:
         return
     print(f"\nWitaj w systemie biblioteki {user}!")
-    #pętla Menu główne
-    """
-    while True:
-        print_main_menu()
-        choice = input("> ").strip()
-        if choice == "1": #opcja Przeglądanie katalogu
-            print_books(ksiazki)
-        elif choice == "2": #opcja Wypożyczenie książki
-            borrow_book(ksiazki, wypozyczenia, user["login"])
-        elif choice == "3": #opcja Moje wypożyczenia
-            print_user_borrows(wypozyczenia, user["login"])
-        elif choice == "0": #opcja Wylogowanie
-            print("Wylogowano!")
-            return
-        else:
-            print("Nieznana opcja, spróbuj ponownie.")
-            continue
-    """
+    user.menu(library)
 
 if __name__ == "__main__":
     main()
