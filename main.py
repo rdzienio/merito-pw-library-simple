@@ -59,12 +59,14 @@ class Reader(User):
     def __init__(self, login, password):
         super().__init__(login, password, "Czytelnik")
         self.borrowed = []
+        self.extension_requests = []
 
     def menu(self):
         print(f"Menu czytelnika ({self.login}):")
         print("  1. Przeglądaj katalog")
         print("  2. Wypożycz")
         print("  3. Moje wypożyczenia")
+        print("  4. pPośba o przedłużenie")
 
 
 class Librarian(User):
@@ -84,12 +86,59 @@ class Library:
         self.users = []
         self.extension_requests = []
 
+    def add_book(self, book):
+        self.books.append(book)
+
+    def add_user(self, user):
+        self.users.append(user)
+
+    def show_books(self):
+        print("\nKatalog książek:")
+        for index, book in enumerate(self.books):
+            print(f"{index + 1}. {book}")
+
+    def borrow_book(self, reader, book_index):
+        book = self.books[book_index]
+
+        if book.available_copies > 0:
+            book.borrow()
+            reader.borrowed_books.append(book)
+            print(f"{reader.login} wypożyczył: {book.title}")
+        else:
+            print("Książka niedostępna")
+
+    def show_borrowings(self):
+        print("\nAktualne wypożyczenia:")
+
+        for user in self.users:
+            if isinstance(user, Reader):
+                for book in user.borrowed_books:
+                    print(f"{user.login} -> {book.title}")
+
+    def handle_requests(self):
+        print("\nProśby o przedłużenie:")
+
+        for index, request in enumerate(self.extension_requests):
+            reader, book = request
+
+            print(f"{index + 1}. {reader.login} -> {book.title}")
+
+            decision = input("Akceptuj? (t/n): ")
+
+            if decision.lower() == "t":
+                print("Prośba zaakceptowana")
+            else:
+                print("Prośba odrzucona")
+
+        self.extension_requests.clear()
+
+        
 #logowanie - użytkownik podaje login i hasło; po 3 nieudanych próbach funkcja się kończy.
 def log_in(users):
     max_attempts = 3
     attempts = 0
 
-    print("----- LOGOWNIANIE -----")
+    print("----- LOGOWNIANIE -----111")
     while attempts < max_attempts:
         login = input("Login: ").strip()    #strip do usuwania białych znaków
         password = input("Hasło: ").strip()
