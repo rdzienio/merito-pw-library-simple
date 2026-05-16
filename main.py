@@ -87,7 +87,11 @@ class Librarian(User):
             print("  2. Prośby o przedłużenie")
             print("  0. Wyloguj")
             choice = input("> ").strip()
-            if choice == "0": #opcja Wylogowanie
+            if choice == "1":
+                library.show_borrowings()
+            elif choice == "2":
+                library.handle_requests()
+            elif choice == "0": #opcja Wylogowanie
                 print("Wylogowano!\n")
                 return
             else:
