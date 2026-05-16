@@ -16,6 +16,73 @@ loginy = [
 
 wypozyczenia = {}
 
+class Book:
+
+    def __init__(self, title, author, total_copies):
+        self.title = title
+        self.author = author
+        self._total_copies = total_copies          # hermetyzacja
+        self._available_copies = total_copies
+
+    @property
+    def available(self):
+        return self._available_copies > 0
+
+    def borrow(self):
+        if not self.available:
+            raise ValueError(f"Brak egzemplarzy: {self.title}")
+        self._available_copies -= 1
+
+    def return_copy(self):
+        if self._available_copies < self._total_copies:
+            self._available_copies += 1
+
+    def __str__(self):
+        return f"{self.title} — {self.author} (dostępne: {self._available_copies})"
+
+class User:
+
+    def __init__(self, login, password, role):
+        self.login = login
+        self._password = password
+        self.role = role
+
+    def authenticate(self, password):
+        return self._password == password
+
+    def menu(self):
+        raise NotImplementedError("Klasy pochodne muszą zaimplementować menu()")
+
+
+class Reader(User):
+
+    def __init__(self, login, password):
+        super().__init__(login, password, "Czytelnik")
+        self.borrowed = []
+
+    def menu(self):
+        print(f"Menu czytelnika ({self.login}):")
+        print("  1. Przeglądaj katalog")
+        print("  2. Wypożycz")
+        print("  3. Moje wypożyczenia")
+
+
+class Librarian(User):
+
+    def __init__(self, login, password):
+        super().__init__(login, password, "Bibliotekarz")
+
+    def menu(self):
+        print(f"Menu bibliotekarza ({self.login}):")
+        print("  1. Lista wszystkich wypożyczeń")
+        print("  2. Prośby o przedłużenie")
+
+class Library:
+
+    def __init__(self):
+        self.books = []
+        self.users = []
+        self.extension_requests = []
 
 #logowanie - użytkownik podaje login i hasło; po 3 nieudanych próbach funkcja się kończy.
 def log_in(users):
