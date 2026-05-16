@@ -186,21 +186,26 @@ class Library:
     def handle_requests(self):
         print("\nProśby o przedłużenie:")
 
-        for index, request in enumerate(self.extension_requests):
-            reader, book = request
+        for reader in self.users:
+            if isinstance(reader, Reader): # sprawdzenie typu
+                requests_copy = reader.extension_requests.copy()
 
-            print(f"{index + 1}. {reader.login} -> {book.title}")
+                for book in requests_copy:
 
-            decision = input("Akceptuj? (t/n): ")
+                    request_found = True
 
-            if decision.lower() == "t":
-                print("Prośba zaakceptowana")
-            else:
-                print("Prośba odrzucona")
-                book.return_copy()
-                reader.borrowed_books.remove(book)
+                    print(f"\n{reader.login} -> {book.title}")
 
-        self.extension_requests.clear()
+                    decision = input("Akceptuj? (t/n): ")
+
+                    if decision.lower() == "t":
+                        print("Prośba zaakceptowana")
+
+                    else:
+                        print("Prośba odrzucona")
+
+                    reader.extension_requests.remove(book)
+
 
     # logowanie - użytkownik podaje login i hasło; po 3 nieudanych próbach funkcja się kończy.
     def log_in(self):
@@ -239,12 +244,23 @@ def main():
     library.add_user(Reader("dzienro", "123123"))
     library.add_user(Reader("kowalski", "abc123"))
 
-    #logowanie - jesli user jest pusty to koniec programu
-    user = library.log_in()
-    if user is None:
-        return
-    print(f"\nWitaj w systemie biblioteki {user}!")
-    user.menu(library)
+    while True:
+        print(f"\nWitaj w systemie biblioteki!")
+        print("1. Zaloguj")
+        print("0. Wyjście")
+        choice = input("> ")
+        if choice == "1":
+            #logowanie - jesli user jest pusty to koniec programu
+            user = library.log_in()
+            if user is None:
+                return
+            user.menu(library)
+
+        elif choice == "0":
+            print("Do widzenia")
+            break
+        else:
+            print("Nieprawidłowa opcja")
 
 if __name__ == "__main__":
     main()
