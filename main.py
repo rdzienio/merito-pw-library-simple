@@ -1,21 +1,3 @@
-ksiazki = [
-    {"tytul": "Pan Tadeusz", "autor": "Mickiewicz", "sztuk": 3},
-    {"tytul": "Lalka", "autor": "Prus", "sztuk": 1},
-    {"tytul": "Ferdydurke", "autor": "Gombrowicz", "sztuk": 2},
-    {"tytul": "Władca Pierścieni. Powrót Króla", "autor": "Tolkien", "sztuk": 4},
-    {"tytul": "Quo Vadis", "autor": "Sienkiewicz", "sztuk": 3},
-    {"tytul": "Wieża jaskółki", "autor": "Sapkowski", "sztuk": 4},
-    {"tytul": "Kroniki Jakuba Wędrowycza", "autor": "Pilipiuk", "sztuk": 5},
-]
-
-loginy = [
-    {"login": "admin", "password": "admin", "rola": "czytelnik"},
-    {"login": "dzienro", "password": "123123", "rola": "czytelnik"},
-    {"login": "merito", "password": "321321", "rola": "czytelnik"},
-]
-
-wypozyczenia = {}
-
 class Book:
 
     def __init__(self, title, author, total_copies):
@@ -52,6 +34,9 @@ class User:
 
     def menu(self):
         raise NotImplementedError("Klasy pochodne muszą zaimplementować menu()")
+
+    def __str__(self):
+        return f"{self.login}"
 
 
 class Reader(User):
@@ -112,7 +97,7 @@ class Library:
 
         for user in self.users:
             if isinstance(user, Reader):
-                for book in user.borrowed_books:
+                for book in user.borrowed:
                     print(f"{user.login} -> {book.title}")
 
     def handle_requests(self):
@@ -132,27 +117,29 @@ class Library:
 
         self.extension_requests.clear()
 
-        
-#logowanie - użytkownik podaje login i hasło; po 3 nieudanych próbach funkcja się kończy.
-def log_in(users):
-    max_attempts = 3
-    attempts = 0
+    # logowanie - użytkownik podaje login i hasło; po 3 nieudanych próbach funkcja się kończy.
+    def log_in(self):
+        max_attempts = 3
+        attempts = 0
 
-    print("----- LOGOWNIANIE -----111")
-    while attempts < max_attempts:
-        login = input("Login: ").strip()    #strip do usuwania białych znaków
-        password = input("Hasło: ").strip()
+        print("----- LOGOWNIANIE -----")
+        while attempts < max_attempts:
+            login = input("Login: ").strip()  # strip do usuwania białych znaków
+            password = input("Hasło: ").strip()
 
-        #porównanie wprowadzonych danych z listą
-        for user in users:
-            if user["login"] == login and user["password"] == password:
-                print(f"\nZalogowano: {user['login']}!")
-                return user
-        attempts += 1
-        print(f"Błędny login lub hasło! Próba {attempts}/{max_attempts}\n")
+            # uzycie autentykacji
+            for user in self.users:
+                if user.login == login and user.authenticate(password):
+                    print(f"\nZalogowano: {user}!")
+                    return user
+            attempts += 1
+            print(f"Błędny login lub hasło! Próba {attempts}/{max_attempts}\n")
 
-    print("Przekroczono liczbę prób! Do widzenia.")
-    return None
+        print("Przekroczono liczbę prób! Do widzenia.")
+        return None
+
+
+
 
 #Przeglądanie katalogu
 def print_books(books):
@@ -212,12 +199,28 @@ def print_main_menu():
     print("0) Wyloguj")
 
 def main():
+    library = Library()
+
+    library.add_book(Book("Lalka", "Prus", 1))
+    library.add_book(Book("Pan Tadeusz", "Mickiewicz", 3))
+    library.add_book(Book("Ferdydurke", "Gombrowicz", 2))
+    library.add_book(Book("Władca Pierścieni. Powrót Króla", "Tolkien", 4))
+    library.add_book(Book("Quo Vadis", "Sienkiewicz", 3))
+    library.add_book(Book("Wieża jaskółki", "Sapkowski", 4))
+    library.add_book(Book("Kroniki Jakuba Wędrowycza", "Pilipiuk", 5))
+
+    library.add_user(Librarian("admin", "admin"))
+    library.add_user(Librarian("merito", "321321"))
+    library.add_user(Reader("dzienro", "123123"))
+    library.add_user(Reader("kowalski", "abc123"))
+
     #logowanie - jesli user jest pusty to koniec programu
-    user = log_in(loginy)
+    user = library.log_in()
     if user is None:
         return
-    print(f"\nWitaj w systemie biblioteki {user['login']}!")
+    print(f"\nWitaj w systemie biblioteki {user}!")
     #pętla Menu główne
+    """
     while True:
         print_main_menu()
         choice = input("> ").strip()
@@ -233,7 +236,7 @@ def main():
         else:
             print("Nieznana opcja, spróbuj ponownie.")
             continue
-
+    """
 
 if __name__ == "__main__":
     main()
