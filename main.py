@@ -198,10 +198,7 @@ class Library:
     def find_book_by_title(self):
         title = input("Podaj tytuł książki do wypożyczenia: ")
         title = title.strip().lower()  # lower do ignorowania wielkości liter
-        for book in self.books:
-            if book.title.strip().lower() == title:
-                return book
-        return None
+        return next((b for b in self.books if b.title.strip().lower() == title), None)
 
     # Wypożyczenie ksiązki
     def borrow_book(self, reader):
