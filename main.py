@@ -291,25 +291,19 @@ class Library:
     def handle_requests(self):
         print("\nProśby o przedłużenie:")
 
-        for reader in self.users:
-            if isinstance(reader, Reader): # sprawdzenie typu
-                requests_copy = reader.extension_requests.copy()
-
-                for book in requests_copy:
-
-                    request_found = True
-
-                    print(f"\n{reader.login} -> {book.title}")
-
-                    decision = input("Akceptuj? (t/n): ")
-
-                    if decision.lower() == "t":
-                        print("Prośba zaakceptowana")
-
-                    else:
-                        print("Prośba odrzucona")
-
-                    reader.extension_requests.remove(book)
+        readers = [u for u in self.users if isinstance(u, Reader)]
+        for reader in readers:
+            requests_copy = reader.extension_requests.copy()
+            for book in requests_copy:
+                has_reservation = len(book.reservations) > 0
+                reservation_info = "Na tę ksiązkę są rezerwacje!" if has_reservation else ""
+                print(f"\n  {reader.login} -> {book.title}{reservation_info}")
+                decision = input("  Akceptuj? (t/n): ")
+                if decision.lower() == "t":
+                    print("  Prośba zaakceptowana")
+                else:
+                    print("  Prośba odrzucona")
+                reader.extension_requests.remove(book)
 
 
     # logowanie - użytkownik podaje login i hasło; po 3 nieudanych próbach funkcja się kończy.
