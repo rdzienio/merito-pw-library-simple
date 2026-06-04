@@ -94,12 +94,21 @@ class Librarian(User):
             print(f"Menu bibliotekarza ({self.login}):")
             print("  1. Lista wszystkich wypożyczeń")
             print("  2. Prośby o przedłużenie")
+            print("  3. Filtruj katalog")
+            print("  4. Sortuj katalog")
+            print("  5. Statystyki")
             print("  0. Wyloguj")
             choice = input("> ").strip()
             if choice == "1":
                 library.show_borrowings()
             elif choice == "2":
                 library.handle_requests()
+            elif choice == "3":
+                library.filter_books_menu()
+            elif choice == "4":
+                library.sort_books_menu()
+            elif choice == "5":
+                library.show_statistics()
             elif choice == "0": #opcja Wylogowanie
                 print("Wylogowano!\n")
                 return
