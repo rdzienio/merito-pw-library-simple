@@ -218,7 +218,7 @@ class Library:
             print("Nie znaleziono tytułu!\n")
             return
 
-        if book:
+        if book.available:
             book.borrow()
             reader.borrowed.append(book)
             print(f"{reader.login} wypożyczył: {book.title} - {book.author}\n")
@@ -296,7 +296,7 @@ class Library:
             requests_copy = reader.extension_requests.copy()
             for book in requests_copy:
                 has_reservation = len(book.reservations) > 0
-                reservation_info = "Na tę ksiązkę są rezerwacje!" if has_reservation else ""
+                reservation_info = " Na tę ksiązkę są rezerwacje!" if has_reservation else ""
                 print(f"\n  {reader.login} -> {book.title}{reservation_info}")
                 decision = input("  Akceptuj? (t/n): ")
                 if decision.lower() == "t":
@@ -305,6 +305,31 @@ class Library:
                     print("  Prośba odrzucona")
                 reader.extension_requests.remove(book)
 
+    def show_statistics(self):
+        print("\n=== Statystyki ===")
+        readers = [u for u in self.users if isinstance(u, Reader)]
+
+        # łączna liczba wypożyczeń - sum + comprehension
+        total_borrowed = sum(len(r.borrowed) for r in readers)
+        print(f"Łączna liczba wypożyczeń: {total_borrowed}")
+
+        # max + lambda
+        if self.books:
+            most_popular = max(self.books, key=lambda b: b.borrowed_count)
+            print(f"\nNajczęściej wypożyczana książka: {most_popular.title} - {most_popular.author} "
+                  f"(wypożyczona {most_popular.borrowed_count} razy)")
+            
+        # ranking czytelników - sorted + lambda
+        ranked_readers = sorted(readers, key=lambda r: -len(r.borrowed))
+        print(f"\nRanking czytelników:")
+                # map do formatowania wierszy
+        rows = list(map(
+            lambda r: f"  {r.login}: {len(r.borrowed)} wypożyczeń",
+            ranked_readers
+        ))
+        print("\n".join(rows) if rows else "  Brak czytelników.")
+ 
+        print("======================\n")
 
     # logowanie - użytkownik podaje login i hasło; po 3 nieudanych próbach funkcja się kończy.
     def log_in(self):
@@ -334,8 +359,11 @@ def main():
     library.add_book(Book("Pan Tadeusz", "Mickiewicz", 3))
     library.add_book(Book("Ferdydurke", "Gombrowicz", 2))
     library.add_book(Book("Władca Pierścieni. Powrót Króla", "Tolkien", 4))
+    library.add_book(Book("Władca Pierścieni. Drużyna Pierścienia", "Tolkien", 5))
+    library.add_book(Book("Władca Pierścieni. Dwie Wieże", "Tolkien", 3))
     library.add_book(Book("Quo Vadis", "Sienkiewicz", 3))
-    library.add_book(Book("Wieża jaskółki", "Sapkowski", 4))
+    library.add_book(Book("Wieża jaskółki. Wiedźmin. Tom 6", "Sapkowski", 4))
+    library.add_book(Book("Chrzest ognia. Wiedźmin. Tom 5", "Sapkowski", 4))
     library.add_book(Book("Kroniki Jakuba Wędrowycza", "Pilipiuk", 5))
 
     library.add_user(Librarian("admin", "admin"))
