@@ -118,7 +118,7 @@ class Librarian(User):
 
 
 # funkcja wyższego rzędu do filtrowania i wyświetlania wyników uzywajaca predykatu            
-def display_filterted(collection, predicate, label="Wyniki"):
+def display_filtered(collection, predicate, label="Wyniki"):
     results = list(filter(predicate, collection))
     print(f"\n{label} ({len(results)} pozycji):")
     if not results:
@@ -170,6 +170,29 @@ class Library:
                 print(f"  {i}. {b}")
         else:
             print("Nieznana opcja, spróbuj ponownie.\n")
+
+    # fancy sortowanie katalogu - uzycie sorted + lambda
+    def sort_books_menu(self):
+        print("\nSortowanie katalogu:")
+        print(" 1. Po tytule (A-Z)")
+        print(" 2. Po autorze (A-Z)")
+        print(" 3. Po liczbie dostępnych egzemplarzy (malejąco)")
+        choice = input("> ").strip()
+        if choice == "1":
+            sorted_books = sorted(self.books, key=lambda b: b.title.lower())
+            label = "Książki posortowane po tytule (A-Z)"
+        elif choice == "2":
+            sorted_books = sorted(self.books, key=lambda b: b.author.lower())
+            label = "Książki posortowane po autorze (A-Z)"
+        elif choice == "3":
+            sorted_books = sorted(self.books, key=lambda b: -b._available_copies)
+            label = "Książki posortowane po liczbie dostępnych egzemplarzy (malejąco)"
+        else:
+            print("Nieznana opcja, spróbuj ponownie.\n")
+            return
+        print(f"\n{label}:")
+        for index, book in enumerate(sorted_books, 1):
+            print(f"{index}. {book}")
 
     # szukanie ksiązki po tytule
     def find_book_by_title(self):
