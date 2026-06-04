@@ -5,10 +5,15 @@ class Book:
         self.author = author
         self._total_copies = total_copies          # hermetyzacja
         self._available_copies = total_copies
+        self.reservations = []
 
     @property
     def available(self):
         return self._available_copies > 0
+    
+    @property
+    def borrowed_count(self):
+        return self._total_copies - self._available_copies
 
     def borrow(self):
         if not self.available:
@@ -18,6 +23,13 @@ class Book:
     def return_copy(self):
         if self._available_copies < self._total_copies:
             self._available_copies += 1
+
+    def reserve(self, reader):
+        if reader not in self.reservations:
+            self.reservations.append(reader)
+            return True
+        else:
+            return False
 
     def __str__(self):
         return f"{self.title} — {self.author} (dostępne: {self._available_copies})"
@@ -128,8 +140,6 @@ def display_filtered(collection, predicate, label="Wyniki"):
     return results
     
 
-
-
 class Library:
 
     def __init__(self):
@@ -194,7 +204,7 @@ class Library:
         for index, book in enumerate(sorted_books, 1):
             print(f"{index}. {book}")
 
-    # szukanie ksiązki po tytule
+    # Szukanie ksiązki po tytule
     def find_book_by_title(self):
         title = input("Podaj tytuł książki do wypożyczenia: ")
         title = title.strip().lower()  # lower do ignorowania wielkości liter
@@ -214,6 +224,27 @@ class Library:
             print(f"{reader.login} wypożyczył: {book.title} - {book.author}\n")
         else:
             print("Książka niedostępna!\n")
+
+    # Rezerwacja książki
+    def reserve_book(self, reader):
+        unavailable_books = [b for b in self.books if not b.available]
+        if not unavailable_books:
+            print("Wszystkie książki są dostępne, nie ma czego rezerwować!\n")
+            return
+        print("\nNiedostępne książki:")
+        for index, book in enumerate(unavailable_books, 1):
+            print(f"{index}. {book}")
+
+        try:
+            choice = int(input("Wybierz nr: ")) - 1
+            book_to_reserve = unavailable_books[choice]
+            if book_to_reserve.reserve(reader):
+                print(f"Złożono prośbę o rezerwację: {book_to_reserve.title} - {book_to_reserve.author}\n")
+            else:
+                print("Już złożyłeś prośbę o rezerwację tej książki!\n")
+        except (ValueError, IndexError):
+            print("Nieprawidłowy wybór!\n")
+
 
     # Wypożyczenia czytelnika
     def show_user_borrowings(self, reader):
