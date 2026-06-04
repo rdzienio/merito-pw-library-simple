@@ -51,19 +51,28 @@ class Reader(User):
 
             print(f"Menu czytelnika ({self.login}):")
             print("  1. Przeglądaj katalog")
-            print("  2. Wypożycz")
-            print("  3. Moje wypożyczenia")
-            print("  4. Przedłuż wypożyczenie")
+            print("  2. Filtruj katalog")
+            print("  3. Sortuj katalog")
+            print("  4. Wypożycz")
+            print("  5. Zarezerwuj książkę")
+            print("  6. Moje wypożyczenia")
+            print("  7. Przedłuż wypożyczenie")
             print("  0. Wyloguj")
 
             choice = input("> ").strip()
             if choice == "1":
                 library.show_books()
             elif choice == "2":
-                library.borrow_book(self)
+                library.filter_books_menu()
             elif choice == "3":
-                library.show_user_borrowings(self)
+                library.sort_books_menu()
             elif choice == "4":
+                library.borrow_book(self)
+            elif choice == "5":
+                library.reserve_book(self)
+            elif choice == "6":
+                library.show_user_borrowings(self)
+            elif choice == "7":
                 library.send_request(self)
             elif choice == "0":
                 print("Wylogowano!\n")
