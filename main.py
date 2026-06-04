@@ -116,6 +116,20 @@ class Librarian(User):
                 print("Nieznana opcja, spróbuj ponownie.\n")
                 continue
 
+
+# funkcja wyższego rzędu do filtrowania i wyświetlania wyników uzywajaca predykatu            
+def display_filterted(collection, predicate, label="Wyniki"):
+    results = list(filter(predicate, collection))
+    print(f"\n{label} ({len(results)} pozycji):")
+    if not results:
+        print("Brak wyników!")
+    for index, item in enumerate(results, 1):
+        print(f"{index}. {item}")
+    return results
+    
+
+
+
 class Library:
 
     def __init__(self):
@@ -134,6 +148,28 @@ class Library:
         print("\nKatalog książek:")
         for index, book in enumerate(self.books):
             print(f"{index + 1}. {book}")
+
+    # fancy filtrowanie katalogu - uzycie funkcji wyższego rzędu
+    def filter_books_menu(self):
+        print("\nFiltrowanie katalogu:")
+        print(" 1. Po frazie w tytule")
+        print(" 2. Po frazie w autorze")
+        print(" 3. Tylko dostępne (niezajęte)")
+        choice = input("> ").strip()
+
+        if choice == "1": #lambda + filter
+            phrase = input("Podaj frazę do wyszukania w tytule: ").strip().lower()
+            display_filtered(self.books, lambda b: phrase in b.title.lower(), f"Książki z '{phrase}' w tytule")
+        elif choice == "2": #lambda + filter
+            phrase = input("Podaj frazę do wyszukania w autorze: ").strip().lower()
+            display_filtered(self.books, lambda b: phrase in b.author.lower(), f"Książki z '{phrase}' w autorze")
+        elif choice == "3": #comprehension
+            available = [b for b in self.books if b._available_copies > 0]
+            print(f"\nDostępne książki ({len(available)} pozycji):")
+            for i, b in enumerate(available, 1):
+                print(f"  {i}. {b}")
+        else:
+            print("Nieznana opcja, spróbuj ponownie.\n")
 
     # szukanie ksiązki po tytule
     def find_book_by_title(self):
