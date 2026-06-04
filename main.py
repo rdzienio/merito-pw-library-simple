@@ -167,17 +167,14 @@ class Library:
         print(" 3. Tylko dostępne (niezajęte)")
         choice = input("> ").strip()
 
-        if choice == "1": #lambda + filter
+        if choice == "1": #lambda + filter z HOF
             phrase = input("Podaj frazę do wyszukania w tytule: ").strip().lower()
             display_filtered(self.books, lambda b: phrase in b.title.lower(), f"Książki z '{phrase}' w tytule")
-        elif choice == "2": #lambda + filter
+        elif choice == "2": #lambda + filter z HOF
             phrase = input("Podaj frazę do wyszukania w autorze: ").strip().lower()
             display_filtered(self.books, lambda b: phrase in b.author.lower(), f"Książki z '{phrase}' w autorze")
-        elif choice == "3": #comprehension
-            available = [b for b in self.books if b._available_copies > 0]
-            print(f"\nDostępne książki ({len(available)} pozycji):")
-            for i, b in enumerate(available, 1):
-                print(f"  {i}. {b}")
+        elif choice == "3": #lambda + filter z HOF
+            display_filtered(self.books, lambda b: b.available, "Dostępne książki")
         else:
             print("Nieznana opcja, spróbuj ponownie.\n")
 
@@ -324,7 +321,7 @@ class Library:
         print(f"\nRanking czytelników:")
                 # map do formatowania wierszy
         rows = list(map(
-            lambda r: f"  {r.login}: {len(r.borrowed)} wypożyczeń",
+            lambda r: f"  {r.login}: {len(r.borrowed)} wypożyczeń/a",
             ranked_readers
         ))
         print("\n".join(rows) if rows else "  Brak czytelników.")
